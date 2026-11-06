@@ -1,4 +1,5 @@
 import "./globals.css";
+import styles from "./layout.module.css";
 
 // Page <head> tags. Next.js turns these objects into <meta> and <link> tags.
 export const metadata = {
@@ -28,7 +29,12 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {/* Full screen on phones; a phone-sized frame on laptops and tablets */}
+        <div className={styles.stage}>
+          <div className={styles.device}>{children}</div>
+        </div>
+      </body>
     </html>
   );
 }

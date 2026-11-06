@@ -9,14 +9,14 @@
 
 /* ---- The scene: photo + booth ----
    Like `object-fit: cover`, but for a whole group of elements: the scene is
-   always the photo's shape (1200 × 796) and at least as big as the screen.
+   always the photo's shape (1200 × 796) and at least as big as the app screen.
+   cqw/cqh = % of the app screen's width/height (see app/layout.module.css).
    150.75 = 1200 ÷ 796 × 100. If you swap the photo, update both numbers. */
 .scene {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: max(100vw, 150.75vh);
-  width: max(100vw, 150.75dvh);
+  width: max(100cqw, 150.75cqh);
   aspect-ratio: 1200 / 796;
   transform: translate(-50%, -50%);
   /* Zoom toward the curtain when entering */
