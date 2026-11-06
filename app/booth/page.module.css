@@ -9,13 +9,29 @@
   touch-action: manipulation; /* no double-tap zoom */
 }
 
+/* The viewfinder: a 3:4 window like the iPhone Camera app, below the top bar.
+   It's the exact picture that gets photographed, so nothing is cropped.
+   Its width is the smaller of: the full screen width, or whatever leaves
+   ~210px of room for the top bar and the shutter on short screens.
+   (cqw/cqh = % of the app screen, see app/layout.module.css) */
 .preview {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1); /* mirror, like a selfie camera */
+  top: calc(var(--safe-top) + 56px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100cqw, (100cqh - var(--safe-top) - var(--safe-bottom) - 210px) * 0.75);
+  aspect-ratio: 3 / 4;
+  background: #111111;
+}
+
+/* The raw camera stays on the page (iPhone stops updating videos that are
+   removed or display:none) but is invisible. */
+.hiddenVideo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .status {

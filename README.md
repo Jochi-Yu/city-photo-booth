@@ -7,6 +7,39 @@ standing on a sunlit mound. Tap the booth to zoom inside, where the camera opens
 shutter, get a 3-2-1 countdown before each of 4 photos, and see them stacked
 into a photo strip you can save to Photos.
 
+Inside the booth, the camera has a **low-poly filter**: you appear as a chunky,
+angular shape with a soft, low-resolution "texture", like an early 3D video
+game character, while the room behind you stays as it is. Cut-out figures
+(people and a horse) float slowly around the edges of the picture.
+
+## How the low-poly filter works
+
+The filter lives in `lib/lowPolyCamera.js`. Each frame it:
+
+1. Draws the normal camera image as the background, cropped to 3:4.
+2. Uses [MediaPipe selfie segmentation](https://ai.google.dev/edge/mediapipe/solutions/vision/image_segmenter),
+   a small AI model that runs in the browser, to find which pixels are a person.
+3. Traces the person's outline with only 16 corner points, making it angular.
+4. Fills the shape with a tiny (64px wide), blurred-up copy of the camera, plus
+   flat light/dark shading on each facet.
+5. Draws the floating figures from `public/stickers/` drifting around the edges.
+
+The viewfinder is 3:4 like the iPhone camera, and the photos are exactly what
+the viewfinder shows (figures included).
+
+- **Privacy:** the camera images are processed on the device and never
+  uploaded. The app does download the AI model (from Google) and its engine
+  (from the jsDelivr CDN) the first time the camera opens, so it needs internet.
+- **One person works best.** With two people, the outline merges them into one shape.
+- **Settings** (top of `lib/lowPolyCamera.js`): `TEXTURE_WIDTH` (lower =
+  blurrier), `POLY_POINTS` (fewer = chunkier), `SMOOTHING`, `FACET_SHADING`,
+  and for the figures `STICKERS` (which ones), `STICKER_SIZE` and `STICKER_SPEED`.
+- **Adding a figure:** save a PNG with a transparent background in
+  `public/stickers/` and add its file name (without `.png`) to `STICKERS`.
+- **Dev-only note:** in `npm run dev`, Next.js may show "1 Issue" saying
+  "Created TensorFlow Lite XNNPACK delegate for CPU". That's an info message
+  from MediaPipe, not an error, and it doesn't appear on the live site.
+
 ## Setup (first time only)
 
 You need [Node.js](https://nodejs.org) installed. Then, in a terminal:
@@ -48,6 +81,8 @@ opens full screen with its own icon, like a native app.
 | `components/PhotoBoothArt.jsx` | The steel booth, drawn as an SVG |
 | `public/landscape.jpg` | The landscape photo (1200 × 796) |
 | `app/booth/page.jsx` | The camera: countdown, flash, strip, Save/Retake, help screens |
+| `lib/lowPolyCamera.js` | The low-poly camera filter and floating figures |
+| `public/stickers/` | The floating figures (transparent PNG cut-outs) |
 | `app/booth/page.module.css` | Styling for the camera screens |
 | `app/globals.css` | Colors and page basics. Includes the iPhone safe-area spacing |
 | `app/layout.jsx` | `<head>` tags: iOS home-screen settings, theme color, viewport |

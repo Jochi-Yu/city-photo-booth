@@ -2,17 +2,21 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { OUTPUT_HEIGHT, OUTPUT_WIDTH, startLowPolyCamera } from "../../lib/lowPolyCamera";
 import styles from "./page.module.css";
 
 // ---- Settings you can tweak ----
 const SHOTS = 4; // photos per strip
 const COUNTDOWN_FROM = 3; // 3-2-1 before each photo
-const PHOTO_ASPECT = 4 / 3; // width ÷ height of each photo in the strip
+// Width ÷ height of each photo. It matches the viewfinder (3:4, set in
+// lib/lowPolyCamera.js), so the photo is exactly what you see on screen.
+const PHOTO_ASPECT = OUTPUT_WIDTH / OUTPUT_HEIGHT;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function PhotoBooth() {
-  const videoRef = useRef(null);
+  const videoRef = useRef(null); // the raw camera (hidden)
+  const canvasRef = useRef(null); // the low-poly version you see
   const streamRef = useRef(null);
 
   // Camera status: "starting" | "ready" | "denied" | "unavailable"
@@ -59,6 +63,13 @@ export default function PhotoBooth() {
     return () => streamRef.current?.getTracks().forEach((track) => track.stop());
   }, [startCamera]);
 
+  // Once the camera is on, start drawing the low-poly filter onto the canvas.
+  useEffect(() => {
+    if (camera !== "ready") return;
+    const stop = startLowPolyCamera({ video: videoRef.current, canvas: canvasRef.current });
+    return stop; // stops the filter when leaving the page
+  }, [camera]);
+
   // ---- Taking the photos ----
   async function takePhotos() {
     if (phase !== "camera" || camera !== "ready") return;
@@ -72,7 +83,7 @@ export default function PhotoBooth() {
         await wait(1000);
       }
       setCount(null);
-      frames.push(captureFrame(videoRef.current));
+      frames.push(captureFrame(canvasRef.current));
       setFlashKey((k) => k + 1);
       await wait(500);
     }
@@ -116,8 +127,14 @@ export default function PhotoBooth() {
 
   return (
     <main className={styles.app}>
-      {/* Live camera. playsInline stops iPhone from opening its own fullscreen player. */}
-      <video ref={videoRef} className={styles.preview} playsInline muted autoPlay />
+      {/* The raw camera feed. It's hidden: the filter reads from it and draws
+          onto the canvas below. playsInline stops iPhone from opening its own
+          fullscreen player. */}
+      <video ref={videoRef} className={styles.hiddenVideo} playsInline muted autoPlay />
+
+      {/* What you actually see (and what gets photographed): the 3:4
+          viewfinder with the low-poly filter and floating figures */}
+      <canvas ref={canvasRef} className={styles.preview} />
 
       {camera === "starting" && <p className={styles.status}>Starting camera…</p>}
       {camera === "denied" && <CameraDenied onRetry={startCamera} />}
@@ -225,11 +242,11 @@ function CameraUnavailable({ onRetry }) {
 
 // ---- Image helpers ----
 
-// Copy the current video frame to a canvas, cropped to PHOTO_ASPECT and
-// mirrored so it matches the selfie preview.
-function captureFrame(video) {
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
+// Copy the current filtered frame to a new canvas, cropped to PHOTO_ASPECT.
+// (The filter already mirrors the image, so we don't flip it here.)
+function captureFrame(source) {
+  const vw = source.width;
+  const vh = source.height;
 
   // Largest centered rectangle with the right shape.
   let sw = vw;
@@ -242,12 +259,10 @@ function captureFrame(video) {
   const sy = (vh - sh) / 2;
 
   const canvas = document.createElement("canvas");
-  canvas.width = 900;
-  canvas.height = Math.round(900 / PHOTO_ASPECT);
+  canvas.width = Math.round(sw);
+  canvas.height = Math.round(sh);
   const ctx = canvas.getContext("2d");
-  ctx.translate(canvas.width, 0);
-  ctx.scale(-1, 1); // mirror
-  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   return canvas;
 }
 
