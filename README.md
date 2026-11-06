@@ -17,23 +17,31 @@ game character, while the room behind you stays as it is. Cut-out figures
 The filter lives in `lib/lowPolyCamera.js`. Each frame it:
 
 1. Draws the normal camera image as the background, cropped to 3:4.
-2. Uses [MediaPipe selfie segmentation](https://ai.google.dev/edge/mediapipe/solutions/vision/image_segmenter),
-   a small AI model that runs in the browser, to find which pixels are a person.
-3. Traces the person's outline with only 16 corner points, making it angular.
-4. Fills the shape with a tiny (64px wide), blurred-up copy of the camera, plus
-   flat light/dark shading on each facet.
+2. Uses [MediaPipe selfie segmentation](https://ai.google.dev/edge/mediapipe/solutions/vision/image_segmenter)
+   to find the person, and traces their outline (hair, neck, shoulders) with
+   only 12 corners.
+3. Uses [MediaPipe face landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker),
+   which tracks 468 points on the face in 3D, and connects ~40 of them (jaw,
+   cheekbones, brows, eyes, nose, mouth) into a triangle mesh: a low-poly head.
+4. Fills everything with a tiny (64px wide), blurred-up copy of the camera,
+   then gives each triangle a flat color and a light/dark tint based on its 3D
+   angle. Those flat planes are what makes it look low-poly.
 5. Draws the floating figures from `public/stickers/` drifting around the edges.
 
 The viewfinder is 3:4 like the iPhone camera, and the photos are exactly what
 the viewfinder shows (figures included).
 
 - **Privacy:** the camera images are processed on the device and never
-  uploaded. The app does download the AI model (from Google) and its engine
-  (from the jsDelivr CDN) the first time the camera opens, so it needs internet.
-- **One person works best.** With two people, the outline merges them into one shape.
-- **Settings** (top of `lib/lowPolyCamera.js`): `TEXTURE_WIDTH` (lower =
-  blurrier), `POLY_POINTS` (fewer = chunkier), `SMOOTHING`, `FACET_SHADING`,
-  and for the figures `STICKERS` (which ones), `STICKER_SIZE` and `STICKER_SPEED`.
+  uploaded. The app does download the two AI models (from Google) and their
+  engine (from the jsDelivr CDN) the first time the camera opens, so it needs
+  internet.
+- **One person works best.** With two people, the outline merges them into
+  one shape, and only one face gets the mesh.
+- **Settings** (top of `lib/lowPolyCamera.js`): `FLAT_COLOR` (how flat each
+  facet is, the main "low-poly" control), `FACET_SHADING` (lighting strength),
+  `TEXTURE_WIDTH` (lower = blurrier), `POLY_POINTS` (fewer = chunkier body),
+  `SMOOTHING`, `FACE_POINTS` (which face points become mesh corners), and for
+  the figures `STICKERS`, `STICKER_SIZE` and `STICKER_SPEED`.
 - **Adding a figure:** save a PNG with a transparent background in
   `public/stickers/` and add its file name (without `.png`) to `STICKERS`.
 - **Dev-only note:** in `npm run dev`, Next.js may show "1 Issue" saying
