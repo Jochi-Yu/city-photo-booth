@@ -1,8 +1,11 @@
 # City Photo Booth
 
-A phone-first photo booth web app built with Next.js. Tap the shutter, get a
-3-2-1 countdown before each of 4 photos, and see them stacked into a photo
-strip you can save to Photos.
+A phone-first photo booth web app built with Next.js.
+
+The homepage is a golden-hour photo of green hills with a brushed-steel photo booth
+standing on a sunlit mound. Tap the booth to zoom inside, where the camera opens. Tap the
+shutter, get a 3-2-1 countdown before each of 4 photos, and see them stacked
+into a photo strip you can save to Photos.
 
 ## Setup (first time only)
 
@@ -40,8 +43,12 @@ opens full screen with its own icon, like a native app.
 
 | File | What it does |
 | --- | --- |
-| `app/page.jsx` | The whole app: camera, countdown, flash, strip, Save/Retake, help screens |
-| `app/page.module.css` | Styling for the app screens |
+| `app/page.jsx` | Homepage: the landscape, the booth, its shadow, film grain and the zoom-in |
+| `app/page.module.css` | Homepage styling, including where the booth sits on the photo |
+| `components/PhotoBoothArt.jsx` | The steel booth, drawn as an SVG |
+| `public/landscape.jpg` | The landscape photo (1200 × 796) |
+| `app/booth/page.jsx` | The camera: countdown, flash, strip, Save/Retake, help screens |
+| `app/booth/page.module.css` | Styling for the camera screens |
 | `app/globals.css` | Colors and page basics. Includes the iPhone safe-area spacing |
 | `app/layout.jsx` | `<head>` tags: iOS home-screen settings, theme color, viewport |
 | `app/manifest.js` | Web app manifest: app name, standalone display, icons |
@@ -51,7 +58,13 @@ opens full screen with its own icon, like a native app.
 
 ## Easy things to change
 
-At the top of `app/page.jsx`:
+**Moving or resizing the booth:** in `app/page.module.css`, `.booth` uses
+`left` (side to side), `top` (where its base sits) and `width` (its size), all
+as percentages of the photo. Move `.castShadow` and
+`.contactShadow` along with it. If you swap in a photo with a different shape,
+update the two size numbers on `.scene` too.
+
+At the top of `app/booth/page.jsx`:
 
 - `SHOTS`: how many photos per strip
 - `COUNTDOWN_FROM`: countdown length before each photo
