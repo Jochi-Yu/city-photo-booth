@@ -35,6 +35,10 @@
     width: 390px;
     height: min(844px, calc(100dvh - 64px));
     border-radius: 52px;
+    /* A laptop has no notch or home bar, so pretend it does: use an iPhone's
+       safe-area sizes, so buttons keep clear of the rounded corners. */
+    --safe-top: 47px;
+    --safe-bottom: 34px;
     /* The phone's black bezel and soft shadow, drawn with box-shadows */
     box-shadow:
       0 0 0 11px #111113,
