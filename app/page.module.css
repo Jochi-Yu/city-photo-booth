@@ -1,0 +1,234 @@
+/* The whole app fills the screen and never scrolls. */
+.app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation; /* no double-tap zoom */
+}
+
+.preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror, like a selfie camera */
+}
+
+.status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ---- Shooting ---- */
+.shotCounter {
+  position: absolute;
+  top: calc(var(--safe-top) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 160px;
+  font-weight: 700;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  animation: pop 1s ease-out;
+}
+
+@keyframes pop {
+  0% { transform: scale(1.4); opacity: 0; }
+  20% { transform: scale(1); opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  animation: flash 450ms ease-out;
+}
+
+@keyframes flash {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ---- Shutter button ---- */
+.controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-bottom) + 28px);
+  display: flex;
+  justify-content: center;
+}
+
+.shutter {
+  width: 84px;
+  height: 84px;
+  padding: 0;
+  border-radius: 50%;
+  border: 5px solid #ffffff;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.shutterInner {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 120ms ease;
+}
+
+.shutter:active .shutterInner {
+  transform: scale(0.88);
+}
+
+.shutter:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ---- Results screen ---- */
+.results {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #111111;
+  padding: calc(var(--safe-top) + 20px) calc(var(--safe-right) + 20px)
+    calc(var(--safe-bottom) + 20px) calc(var(--safe-left) + 20px);
+  gap: 20px;
+  animation: slideUp 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.stripArea {
+  flex: 1;
+  min-height: 0; /* lets the image shrink to fit instead of overflowing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stripImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.resultButtons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.pillButton {
+  flex: 1;
+  min-height: 50px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.pillButton:active {
+  opacity: 0.6;
+}
+
+.primary {
+  background: var(--blue);
+  color: #ffffff;
+}
+
+.secondary {
+  background: var(--surface);
+  color: #ffffff;
+}
+
+/* ---- Camera help screens ---- */
+.help {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: calc(var(--safe-top) + 24px) calc(var(--safe-right) + 24px)
+    calc(var(--safe-bottom) + 24px) calc(var(--safe-left) + 24px);
+  overflow-y: auto;
+}
+
+.helpIcon {
+  font-size: 48px;
+}
+
+.helpTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.helpText {
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+/* In the help column, keep the button its natural height instead of stretching. */
+.helpButton {
+  flex: none;
+  margin-top: 8px;
+}
+
+.helpList {
+  margin: 0;
+  padding: 16px 16px 16px 32px;
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 15px;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

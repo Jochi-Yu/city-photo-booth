@@ -1,0 +1,10 @@
+// The small browser-tab icon (favicon).
+import { ImageResponse } from "next/og";
+import AppIconArt from "../components/AppIconArt";
+
+export const size = { width: 64, height: 64 };
+export const contentType = "image/png";
+
+export default function Icon() {
+  return new ImageResponse(<AppIconArt size={64} />, size);
+}
