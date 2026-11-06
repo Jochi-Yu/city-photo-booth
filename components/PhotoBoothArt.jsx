@@ -16,7 +16,17 @@
 //   5. Highlights: a soft bright stripe and thin bright edges where the low
 //      sun (on the left) catches the steel
 //
+// TWO LAYERS
+// The booth is two drawings stacked on top of each other:
+//   - Back: the interior and the curtain. The curtain sways in a breeze.
+//   - Front: the steel panels. They have a cut-out where the opening is.
+// Why split it? The steel's texture filters are slow to draw. If the curtain
+// moved inside the same drawing, the browser would redraw all the steel every
+// frame, which stutters on phones. Separate layers let the steel stay still.
+//
 // `idPrefix` keeps the gradient IDs unique if the booth is drawn more than once.
+
+import styles from "./PhotoBoothArt.module.css";
 
 // The steel panels, as [x, width]. Used to draw every layer on each panel.
 const LEFT_PANEL = { x: 0, width: 44 };
@@ -34,8 +44,83 @@ export default function PhotoBoothArt({ idPrefix = "booth", className }) {
       <rect key={panel.x} x={panel.x} y={PANEL_TOP} width={panel.width} height={PANEL_HEIGHT} {...props} />
     ));
 
+  // The curtain's outline, with a gently wavy hem at the bottom. It runs on
+  // past x=80, hidden behind the right steel panel, so when it sways no gap
+  // opens up on that side — only the free left edge moves, like real fabric.
+  const curtainShape = "M55 6 H88 V105.5 q-3 1 -6 0 t-6 0 t-6 0 t-6 0 t-6 0 t-9 0 Z";
+
   return (
-    <svg className={className} viewBox="0 0 100 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <div className={`${styles.layers} ${className ?? ""}`} aria-hidden="true">
+      {/* ================= BACK LAYER: interior + curtain ================= */}
+      <svg className={styles.layer} viewBox="0 0 100 112" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          {/* Tiger-print wallpaper inside the booth */}
+          <pattern id={id("tiger")} width="9" height="7" patternUnits="userSpaceOnUse">
+            <rect width="9" height="7" fill="#a88d66" />
+            <path d="M0 1.2 q2.2 1 4.5 0.2 t4.5 0.4" stroke="#2a2019" strokeWidth="0.8" fill="none" />
+            <path d="M1 4.3 q2 -0.9 3.6 0.1" stroke="#2a2019" strokeWidth="0.7" fill="none" />
+            <path d="M5.4 5.4 q1.5 0.8 3.6 -0.2" stroke="#2a2019" strokeWidth="0.6" fill="none" />
+          </pattern>
+          <linearGradient id={id("interiorShade")} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor="#000" stopOpacity="0.45" />
+            <stop offset="0.5" stopColor="#000" stopOpacity="0.15" />
+            <stop offset="1" stopColor="#000" stopOpacity="0.5" />
+          </linearGradient>
+
+          {/* Curtain folds: a light/dark band that repeats across the curtain */}
+          <linearGradient
+            id={id("curtain")}
+            x1="56"
+            x2="59.5"
+            y1="0"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+            spreadMethod="repeat"
+          >
+            <stop offset="0" stopColor="#efe7cf" />
+            <stop offset="0.45" stopColor="#fbf7ea" />
+            <stop offset="0.8" stopColor="#d9cfb2" />
+            <stop offset="1" stopColor="#efe7cf" />
+          </linearGradient>
+
+          {/* Extra fold shadows that drift sideways, so the folds look like
+              they're shifting in the breeze */}
+          <linearGradient
+            id={id("foldShadow")}
+            x1="0"
+            x2="5"
+            y1="0"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+            spreadMethod="repeat"
+          >
+            <stop offset="0" stopColor="#5a4a2a" stopOpacity="0" />
+            <stop offset="0.55" stopColor="#5a4a2a" stopOpacity="0.16" />
+            <stop offset="1" stopColor="#5a4a2a" stopOpacity="0" />
+          </linearGradient>
+          <clipPath id={id("curtainClip")}>
+            <path d={curtainShape} />
+          </clipPath>
+        </defs>
+
+        {/* Interior */}
+        <rect x="44" y="5" width="36" height="102" fill={url("tiger")} />
+        <rect x="44" y="5" width="36" height="102" fill={url("interiorShade")} />
+        <rect x="44" y="99" width="36" height="8" fill="#3b2a1d" />
+
+        {/* Curtain. The whole group sways from the rod at the top. */}
+        <g className={styles.curtainSway}>
+          <path d={curtainShape} fill={url("curtain")} />
+          <g clipPath={url("curtainClip")}>
+            <rect className={styles.foldDrift} x="48" y="5" width="44" height="102" fill={url("foldShadow")} />
+          </g>
+          <rect x="55" y="5" width="33" height="2.4" fill="#ddd3b5" />
+          <rect x="55" y="5" width="33" height="0.6" fill="#000" opacity="0.25" />
+        </g>
+      </svg>
+
+      {/* ================= FRONT LAYER: steel ================= */}
+      <svg className={styles.layer} viewBox="0 0 100 112" xmlns="http://www.w3.org/2000/svg">
       <defs>
         {/* 1. Base steel: strong light and dark bands, like a curved reflection */}
         <linearGradient id={id("steelLeft")} x1="0" x2="1" y1="0" y2="0">
@@ -105,35 +190,6 @@ export default function PhotoBoothArt({ idPrefix = "booth", className }) {
           <rect x="44" y={PANEL_TOP} width="36" height="2.8" />
         </clipPath>
 
-        {/* Tiger-print wallpaper inside the booth */}
-        <pattern id={id("tiger")} width="9" height="7" patternUnits="userSpaceOnUse">
-          <rect width="9" height="7" fill="#a88d66" />
-          <path d="M0 1.2 q2.2 1 4.5 0.2 t4.5 0.4" stroke="#2a2019" strokeWidth="0.8" fill="none" />
-          <path d="M1 4.3 q2 -0.9 3.6 0.1" stroke="#2a2019" strokeWidth="0.7" fill="none" />
-          <path d="M5.4 5.4 q1.5 0.8 3.6 -0.2" stroke="#2a2019" strokeWidth="0.6" fill="none" />
-        </pattern>
-        <linearGradient id={id("interiorShade")} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#000" stopOpacity="0.45" />
-          <stop offset="0.5" stopColor="#000" stopOpacity="0.15" />
-          <stop offset="1" stopColor="#000" stopOpacity="0.5" />
-        </linearGradient>
-
-        {/* Curtain folds: a light/dark band that repeats across the curtain */}
-        <linearGradient
-          id={id("curtain")}
-          x1="56"
-          x2="59.5"
-          y1="0"
-          y2="0"
-          gradientUnits="userSpaceOnUse"
-          spreadMethod="repeat"
-        >
-          <stop offset="0" stopColor="#efe7cf" />
-          <stop offset="0.45" stopColor="#fbf7ea" />
-          <stop offset="0.8" stopColor="#d9cfb2" />
-          <stop offset="1" stopColor="#efe7cf" />
-        </linearGradient>
-
         {/* Top cap: bright on top where it faces the sky */}
         <linearGradient id={id("cap")} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stopColor="#ffffff" />
@@ -141,16 +197,6 @@ export default function PhotoBoothArt({ idPrefix = "booth", className }) {
           <stop offset="1" stopColor="#a9a69f" />
         </linearGradient>
       </defs>
-
-      {/* ---- Interior (seen through the opening) ---- */}
-      <rect x="44" y="5" width="36" height="102" fill={url("tiger")} />
-      <rect x="44" y="5" width="36" height="102" fill={url("interiorShade")} />
-      <rect x="44" y="99" width="36" height="8" fill="#3b2a1d" />
-
-      {/* ---- Curtain ---- */}
-      <path d="M55 6 H80 V105.5 q-3 1 -6 0 t-6 0 t-6 0 t-7 0 Z" fill={url("curtain")} />
-      <rect x="55" y="5" width="25" height="2.4" fill="#ddd3b5" />
-      <rect x="55" y="5" width="25" height="0.6" fill="#000" opacity="0.25" />
 
       {/* ---- Steel panels ---- */}
       {/* 1. Base */}
@@ -196,6 +242,7 @@ export default function PhotoBoothArt({ idPrefix = "booth", className }) {
       <rect x="-0.6" y="0" width="101.2" height="2.6" fill={url("cap")} />
       <rect x="-0.6" y="2.3" width="101.2" height="0.5" fill="#000" opacity="0.25" />
       <rect x="0" y="108" width="100" height="4" fill="#1a1b1a" />
-    </svg>
+      </svg>
+    </div>
   );
 }

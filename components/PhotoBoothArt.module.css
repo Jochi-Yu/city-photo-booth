@@ -1,0 +1,54 @@
+/* The two drawings (back: curtain, front: steel) stacked exactly on top of
+   each other. */
+.layers {
+  position: relative;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ---- The breeze ----
+   The curtain hangs from the rod, so it pivots from its TOP edge. `skewX`
+   slides the bottom sideways while the top stays put, like fabric being
+   pushed by air. `scaleY` below 1 lifts the hem a touch as it swings.
+   The keyframes are uneven on purpose: real breezes come in small gusts,
+   then settle, so an even back-and-forth would look mechanical. */
+.curtainSway {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: breeze 7s ease-in-out infinite;
+}
+
+@keyframes breeze {
+  0% { transform: skewX(0deg) scaleY(1); }
+  18% { transform: skewX(-2deg) scaleY(0.994); } /* gust */
+  30% { transform: skewX(-0.8deg) scaleY(0.998); }
+  42% { transform: skewX(-1.4deg) scaleY(0.996); } /* smaller second puff */
+  62% { transform: skewX(0.5deg) scaleY(1); } /* swings back past center */
+  80% { transform: skewX(-0.4deg) scaleY(0.999); }
+  100% { transform: skewX(0deg) scaleY(1); }
+}
+
+/* The fold shadows drift side to side on a different rhythm from the sway,
+   so the fabric looks like it's rippling, not just tilting. */
+.foldDrift {
+  animation: ripple 4.6s ease-in-out infinite alternate;
+}
+
+@keyframes ripple {
+  from { transform: translateX(0); }
+  to { transform: translateX(2.2px); } /* px here = drawing units */
+}
+
+/* Respect the "Reduce Motion" setting on iPhone/Mac: keep the curtain still. */
+@media (prefers-reduced-motion: reduce) {
+  .curtainSway,
+  .foldDrift {
+    animation: none;
+  }
+}
